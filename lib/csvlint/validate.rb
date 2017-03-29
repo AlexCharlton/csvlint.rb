@@ -70,6 +70,7 @@ module Csvlint
       @lambda = options[:lambda]
       @after_validation_lambda = options[:after_validation_lambda]
       @batch_size = options[:batch_size] ||= 1
+      @allow_quoted_linebreaks = options[:allow_quoted_linebreaks].nil? ? true : options[:allow_quoted_linebreaks]
       @leading = ""
 
       @limit_lines = options[:limit_lines]
@@ -170,9 +171,9 @@ module Csvlint
       line = @leading + line
       # Check if the last line is a line break - in which case it's a full line
       if line[-1, 1].include?("\n")
-        # If the number of quotes is odd, the linebreak is inside some quotes
-        if line.count(@dialect["quoteChar"]).odd?
-          @leading = line
+        # If the number of quotes is odd, the linebreak is inside some quotes.
+        if line.count(@dialect["quoteChar"]).odd? && @allow_quoted_linebreaks
+          return @leading = line
         else
           validate_line(line, @current_line)
           @leading = ""
